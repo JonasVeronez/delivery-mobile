@@ -171,7 +171,7 @@ export default function DeliveryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Minhas entregas</Text>
 
-        <View style={{ flexDirection: "row", gap: 10 }}>
+        <View style={{ flexDirection: "row", gap: 10, margin:10 }}>
           <TouchableOpacity style={styles.refreshBtn} onPress={load}>
             <Text style={{ color: "#fff", fontWeight: "600" }}>Atualizar</Text>
           </TouchableOpacity>
