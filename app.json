@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "delivery-mobile-v0",
+    "slug": "delivery-mobile-v0",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "deliverymobilev0",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.deliverymobilev0"
+    },
+    "ios": {
+      "supportsTablet": true
+    }
+  }
+}
