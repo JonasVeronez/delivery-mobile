@@ -1,5 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
+import * as Location from "expo-location";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -8,13 +9,20 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../services/api";
 
+const GOOGLE_KEY = "SUA_GOOGLE_API_KEY";
+
 export default function DeliveryScreen() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [driverLocation, setDriverLocation] = useState<any>(null);
+  const [customerCoords, setCustomerCoords] = useState<any>({});
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation<any>();
+  const watchRef = useRef<any>(null);
 
   const load = async () => {
     try {
@@ -29,12 +37,57 @@ export default function DeliveryScreen() {
     load();
   }, []);
 
+  // ⭐ GPS realtime
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+
+      watchRef.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000,
+          distanceInterval: 5,
+        },
+        (location) => setDriverLocation(location.coords)
+      );
+    })();
+
+    return () => watchRef.current?.remove();
+  }, []);
+
+  // ⭐ GEOCODING ENDEREÇO → COORDS
+  useEffect(() => {
+    const geocodeAll = async () => {
+      const map: any = {};
+
+      for (const o of orders) {
+        const address = `${o.street}, ${o.number}, ${o.city}, Brazil`;
+
+        try {
+          const geo = await Location.geocodeAsync(address);
+          if (geo.length > 0) {
+            map[o.id] = {
+              latitude: geo[0].latitude,
+              longitude: geo[0].longitude,
+            };
+          }
+        } catch (e) {
+          console.log("Erro geocode:", e);
+        }
+      }
+
+      setCustomerCoords(map);
+    };
+
+    if (orders.length) geocodeAll();
+  }, [orders]);
+
   const handleBack = async () => {
     await logout();
     navigation.replace("Login");
   };
 
-  // ⭐ FUNÇÃO FINALIZAR
   const confirmFinish = (id: number) => {
     Alert.alert(
       "Finalizar entrega",
@@ -48,7 +101,7 @@ export default function DeliveryScreen() {
             try {
               await api.put(`/orders/${id}/finish`);
               load();
-            } catch (e) {
+            } catch {
               Alert.alert("Erro", "Não foi possível finalizar");
             }
           },
@@ -59,26 +112,41 @@ export default function DeliveryScreen() {
 
   const renderItem = ({ item, index }: any) => {
     const isCurrent = index === 0;
+    const customerLocation = customerCoords[item.id];
 
     return (
       <View style={[styles.card, isCurrent && styles.currentCard]}>
         <Text style={styles.orderNumber}>Pedido #{item.id}</Text>
-
         <Text style={styles.name}>{item.customerName}</Text>
 
-        <Text style={styles.info}>📞 {item.customerPhone ?? "Sem telefone"}</Text>
-        <Text style={styles.info}>
-          📍 {item.street}, {item.number} - {item.neighborhood}
+        <Text style={styles.deliveryAddress}>
+          📍 Entrega: {item.street}, {item.number} - {item.neighborhood}
         </Text>
 
         <Text style={styles.city}>🏙 {item.city}</Text>
 
-        {item.items.map((p: any) => (
-          <View key={p.productId} style={styles.item}>
-            <Text>{p.quantity}x {p.productName}</Text>
-            <Text>R$ {Number(p.subtotal).toFixed(2)}</Text>
-          </View>
-        ))}
+        {driverLocation && customerLocation && (
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: driverLocation.latitude,
+              longitude: driverLocation.longitude,
+              latitudeDelta: 0.02,
+              longitudeDelta: 0.02,
+            }}
+          >
+            <Marker coordinate={driverLocation} title="Motoboy" />
+            <Marker coordinate={customerLocation} title="Cliente" pinColor="green" />
+
+            <MapViewDirections
+              origin={driverLocation}
+              destination={customerLocation}
+              apikey={GOOGLE_KEY}
+              strokeWidth={4}
+              strokeColor="#2E7D32"
+            />
+          </MapView>
+        )}
 
         <Text style={styles.total}>
           Total: R$ {Number(item.totalAmount || 0).toFixed(2)}
@@ -103,7 +171,7 @@ export default function DeliveryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Minhas entregas</Text>
 
-        <View style={{ flexDirection: "row", gap: 10, marginLeft: 10 }}>
+        <View style={{ flexDirection: "row", gap: 10 }}>
           <TouchableOpacity style={styles.refreshBtn} onPress={load}>
             <Text style={{ color: "#fff", fontWeight: "600" }}>Atualizar</Text>
           </TouchableOpacity>
@@ -155,9 +223,11 @@ const styles = StyleSheet.create({
   currentCard: { borderWidth: 2, borderColor: "#4CAF50" },
   orderNumber: { fontWeight: "bold", color: "#4CAF50" },
   name: { fontSize: 18, fontWeight: "bold" },
-  info: { color: "#555" },
-  city: { color: "#777" },
-  item: { flexDirection: "row", justifyContent: "space-between" },
+
+  deliveryAddress: { marginTop: 5, color: "#444", fontWeight: "600" },
+  city: { color: "#777", marginBottom: 5 },
+
+  map: { height: 220, borderRadius: 12, marginTop: 10 },
 
   total: {
     marginTop: 10,
