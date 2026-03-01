@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -12,6 +13,7 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen() {
   const { login } = useContext(AuthContext);
+  const navigation = useNavigation<any>();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,27 +22,16 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     console.log("🔥 Botão login clicado");
     console.log("📧 Email:", email);
-    console.log("🔒 Password:", password);
 
     try {
       setError("");
-
-      console.log("🚀 Chamando login() do AuthContext...");
       await login(email, password);
-
-      console.log("✅ Login realizado com sucesso");
     } catch (e: any) {
-      console.log("❌ ERRO LOGIN:", e);
-
       if (e?.response) {
-        console.log("📡 Resposta backend:", e.response.data);
-        console.log("📡 Status:", e.response.status);
         setError(e?.response?.data?.message || "Erro backend");
       } else if (e?.request) {
-        console.log("🌐 Erro de rede (request não respondeu)");
         setError("Erro de conexão com servidor");
       } else {
-        console.log("⚠️ Erro desconhecido:", e.message);
         setError("Erro ao fazer login");
       }
     }
@@ -77,20 +68,20 @@ export default function LoginScreen() {
             }}
           />
 
-        <TextInput
-          placeholder="Senha"
-          placeholderTextColor="#999"
-          style={styles.input}
-          secureTextEntry
-          autoCorrect={false}
-          autoComplete="off"
-          importantForAutofill="no"
-          value={password}
-          onChangeText={(t) => {
-            setPassword(t);
-            setError("");
-          }}
-        />
+          <TextInput
+            placeholder="Senha"
+            placeholderTextColor="#999"
+            style={styles.input}
+            secureTextEntry
+            autoCorrect={false}
+            autoComplete="off"
+            importantForAutofill="no"
+            value={password}
+            onChangeText={(t) => {
+              setPassword(t);
+              setError("");
+            }}
+          />
 
           <TouchableOpacity
             activeOpacity={0.8}
@@ -98,6 +89,16 @@ export default function LoginScreen() {
             onPress={handleLogin}
           >
             <Text style={styles.buttonText}>ENTRAR</Text>
+          </TouchableOpacity>
+
+          {/* ⭐ BOTÃO CADASTRO */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Register")}
+            style={{ marginTop: 15 }}
+          >
+            <Text style={styles.registerText}>
+              Criar conta
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -203,6 +204,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  registerText: {
+    textAlign: "center",
+    color: "#2E7D32",
+    fontWeight: "600",
   },
 
   footer: {

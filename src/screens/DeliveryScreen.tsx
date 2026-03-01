@@ -29,10 +29,11 @@ export default function DeliveryScreen() {
     try {
       const res = await api.get("/orders/delivery/queue");
 
-      // ⭐ converte endereço em coordenadas
       const enriched = await Promise.all(
         res.data.map(async (order: any) => {
-          const address = `${order.street}, ${order.number}, ${order.neighborhood}, ${order.city}`;
+
+          // ⭐ MELHOR CORREÇÃO — REMOVER BAIRRO
+          const address = `${order.street}, ${order.number}, ${order.city}, MG, Brasil`;
 
           try {
             const geo = await Location.geocodeAsync(address);
@@ -46,6 +47,20 @@ export default function DeliveryScreen() {
                 }
               };
             }
+
+            // ⭐ FALLBACK — cidade
+            const cityGeo = await Location.geocodeAsync(`${order.city}, MG, Brasil`);
+
+            if (cityGeo.length > 0) {
+              return {
+                ...order,
+                deliveryLocation: {
+                  latitude: cityGeo[0].latitude,
+                  longitude: cityGeo[0].longitude
+                }
+              };
+            }
+
           } catch (e) {
             console.log("Erro geocode:", e);
           }
@@ -159,7 +174,7 @@ export default function DeliveryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Minhas entregas</Text>
 
-        <View style={{ flexDirection: "row", gap: 10 , margin:10 }}>
+        <View style={{ flexDirection: "row", gap: 10, margin: 10 }}>
           <TouchableOpacity style={styles.refreshBtn} onPress={load}>
             <Text style={{ color: "#fff" }}>Atualizar</Text>
           </TouchableOpacity>
@@ -191,92 +206,19 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30
   },
-
-  headerTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "bold"
-  },
-
-  refreshBtn: {
-    backgroundColor: "#1B5E20",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10
-  },
-
-  logoutBtn: {
-    backgroundColor: "#2E7D32",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10
-  },
-
-  card: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 18,
-    marginBottom: 15,
-    overflow: "hidden"
-  },
-
-  currentCard: {
-    borderWidth: 2,
-    borderColor: "#4CAF50"
-  },
-
-  orderNumber: {
-    fontWeight: "bold",
-    color: "#4CAF50"
-  },
-
-  name: {
-    fontSize: 18,
-    fontWeight: "bold"
-  },
-
-  info: {
-    color: "#555"
-  },
-
-  mapWrapper: {
-    marginTop: 10,
-    borderRadius: 12,
-    overflow: "hidden"
-  },
-
-  map: {
-    height: 180
-  },
-
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-
-  total: {
-    marginTop: 10,
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#2E7D32",
-    textAlign: "right"
-  },
-
-  finishButton: {
-    marginTop: 15,
-    backgroundColor: "#2E7D32",
-    padding: 15,
-    borderRadius: 12,
-    alignItems: "center"
-  },
-
-  finishText: {
-    color: "#fff",
-    fontWeight: "bold"
-  },
-
-  wait: {
-    color: "gray",
-    marginTop: 10
-  }
+  headerTitle: { color: "#fff", fontSize: 22, fontWeight: "bold" },
+  refreshBtn: { backgroundColor: "#1B5E20", paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10 },
+  logoutBtn: { backgroundColor: "#2E7D32", paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10 },
+  card: { backgroundColor: "#fff", padding: 20, borderRadius: 18, marginBottom: 15, overflow: "hidden" },
+  currentCard: { borderWidth: 2, borderColor: "#4CAF50" },
+  orderNumber: { fontWeight: "bold", color: "#4CAF50" },
+  name: { fontSize: 18, fontWeight: "bold" },
+  info: { color: "#555" },
+  mapWrapper: { marginTop: 10, borderRadius: 12, overflow: "hidden" },
+  map: { height: 180 },
+  item: { flexDirection: "row", justifyContent: "space-between" },
+  total: { marginTop: 10, fontWeight: "bold", fontSize: 16, color: "#2E7D32", textAlign: "right" },
+  finishButton: { marginTop: 15, backgroundColor: "#2E7D32", padding: 15, borderRadius: 12, alignItems: "center" },
+  finishText: { color: "#fff", fontWeight: "bold" },
+  wait: { color: "gray", marginTop: 10 }
 });
