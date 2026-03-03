@@ -3,8 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
-  StyleSheet,
+  Image, SafeAreaView, StyleSheet,
   Text,
   TouchableOpacity,
   View
@@ -73,7 +72,7 @@ export default function ClientHomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F1F8F4" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F1F8F4" }}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.welcomeRow}>
@@ -201,7 +200,7 @@ export default function ClientHomeScreen() {
           Pedidos
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -295,7 +294,7 @@ const styles = StyleSheet.create({
 
   cartBtn: {
     position: "absolute",
-    bottom: 20,
+    bottom: 35,
     left: 20,
     right: 20,
     backgroundColor: "#4CAF50",
@@ -308,11 +307,12 @@ const styles = StyleSheet.create({
 
   ordersBtn: {
     position: "absolute",
-    bottom: 90,
+    bottom: 110,
     right: 20,
     backgroundColor: "#2E7D32",
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 20
+    
   }
 });
