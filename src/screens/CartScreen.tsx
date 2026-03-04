@@ -68,7 +68,7 @@ export default function CartScreen() {
   );
   const totalWithDelivery = productsTotal + (deliveryProduct?.price || 0);
 
-  // Função que realmente envia o pedido
+    // Função que realmente envia o pedido
   const sendOrder = async () => {
     try {
       const payload = {
@@ -81,9 +81,19 @@ export default function CartScreen() {
 
       await api.post("/orders", payload);
 
-      Alert.alert("Sucesso", "Pedido confirmado!");
       clear();
-      navigation.goBack();
+
+      Alert.alert(
+        "Sucesso",
+        "Pedido confirmado!",
+        [
+          {
+            text: "Ver Pedidos",
+            onPress: () => navigation.navigate("Orders")
+          }
+        ]
+      );
+
     } catch (error) {
       console.log(error);
       Alert.alert("Erro", "Não foi possível finalizar o pedido.");

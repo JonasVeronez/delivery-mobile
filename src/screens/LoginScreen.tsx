@@ -105,7 +105,7 @@ export default function LoginScreen() {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>© JVIOT automation</Text>
+        <Text style={styles.footerText}>© JVIOT Automation</Text>
       </View>
     </KeyboardAvoidingView>
   );
