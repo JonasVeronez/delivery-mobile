@@ -1,3 +1,4 @@
+
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useContext } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
@@ -11,13 +12,13 @@ import CartScreen from "../screens/CartScreen";
 import ClientHomeScreen from "../screens/ClientHomeScreen";
 import EditAddressScreen from "../screens/EditAddressScreen";
 import OrdersScreen from "../screens/OrdersScreen";
+import ProfileScreen from "../screens/ProfileScreen"; // 🔥 IMPORTANTE
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   const { token, role, logout } = useContext(AuthContext);
 
-  // ⭐ NÃO LOGADO
   if (!token) {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -27,7 +28,6 @@ export default function AppNavigator() {
     );
   }
 
-  // ⭐ MOTOBOY
   if (role === "DELIVERY") {
     return (
       <Stack.Navigator>
@@ -40,7 +40,6 @@ export default function AppNavigator() {
     );
   }
 
-  // ⭐ CLIENTE (SEM HEADER NATIVO → usamos header custom)
   if (role === "CLIENT") {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -48,11 +47,11 @@ export default function AppNavigator() {
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Orders" component={OrdersScreen} />
         <Stack.Screen name="EditAddress" component={EditAddressScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     );
   }
 
-  // ⭐ FALLBACK
   return (
     <View style={styles.center}>
       <Text style={styles.text}>Usuário inválido</Text>
@@ -73,3 +72,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold"
   }
 });
+
