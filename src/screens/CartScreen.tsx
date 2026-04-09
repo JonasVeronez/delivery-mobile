@@ -16,7 +16,7 @@ import { api } from "../services/api";
 
 export default function CartScreen() {
   const insets = useSafeAreaInsets();
-
+  const [loading, setLoading] = useState(false);
   const { items, add, remove, clear } = useContext(CartContext);
   const navigation = useNavigation<any>();
 
@@ -105,7 +105,7 @@ export default function CartScreen() {
 
   const totalWithDelivery =
     productsTotal + (deliveryProduct?.price || 0);
-
+    
   const handleFinish = () => {
     if (!user?.address)
       return Alert.alert(
@@ -136,8 +136,35 @@ export default function CartScreen() {
         { text: "Cancelar", style: "cancel" },
         {
           text: "Confirmar Pedido",
-          onPress: () => {
-            console.log("Pedido confirmado");
+          onPress: async () => {
+            try {
+              setLoading(true);
+
+              const payload = {
+                paymentMethod,
+                items: productsOnly.map((item) => ({
+                  productId: item.productId,
+                  quantity: item.quantity
+                }))
+              };
+
+              console.log("📡 ENVIANDO PEDIDO:", payload);
+
+              const res = await api.post("/orders", payload);
+
+              console.log("✅ PEDIDO CRIADO:", res.data);
+
+              clear();
+
+              // 🔥 REDIRECIONA PRA TELA DE PEDIDOS
+              navigation.navigate("Orders");
+
+            } catch (e: any) {
+              console.log("❌ ERRO:", e?.response?.data || e);
+              Alert.alert("Erro ao criar pedido");
+            } finally {
+              setLoading(false);
+            }
           }
         }
       ]
